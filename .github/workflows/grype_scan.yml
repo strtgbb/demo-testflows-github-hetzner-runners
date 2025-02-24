@@ -1,4 +1,5 @@
 name: Grype Scan
+run-name: Grype Scan ${{ github.event.inputs.docker_image || inputs.docker_image }}
 
 on:
     workflow_dispatch:
