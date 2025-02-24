@@ -23,6 +23,16 @@ jobs:
         - name: Set up Docker
           uses: docker/setup-buildx-action@v3
 
+        - name: Set up Python
+          run: |
+            export TESTFLOWS_VERSION="2.4.19"
+            sudo apt-get install -y python3-pip python3-venv
+            python3 -m venv venv
+            source .venv/bin/activate
+            pip install --upgrade requests chardet urllib3
+            pip install testflows==$TESTFLOWS_VERSION
+            echo PATH=$PATH >>$GITHUB_ENV
+
         - name: Run Grype Scan
           run: |
             ./.github/grype/run_grype_scan.sh ${{ github.event.inputs.docker_image || inputs.docker_image }}
