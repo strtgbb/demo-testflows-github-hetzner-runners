@@ -15,98 +15,60 @@ jobs:
             type: deb
             base: ubuntu:22.04
             repo_url: https://builds.altinity.cloud/apt-repo
-            pkg_cmd: |
-              apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 dialog sudo
-              mkdir -p /usr/share/keyrings
-              curl -s "${REPO_URL}/pubkey.gpg" | gpg --dearmor > /usr/share/keyrings/altinity-archive-keyring.gpg
-              echo "deb [signed-by=/usr/share/keyrings/altinity-archive-keyring.gpg] ${REPO_URL} stable main" > /etc/apt/sources.list.d/altinity.list
-              apt-get update
-              DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-server clickhouse-client
           - env: prod
             type: rpm
             base: centos:8
             repo_url: https://builds.altinity.cloud/yum-repo
-            pkg_cmd: |
-              sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-              yum install -y curl gnupg2 sudo
-              curl "${REPO_URL}/altinity.repo" -o /etc/yum.repos.d/altinity.repo
-              yum install -y clickhouse-server clickhouse-client
           # FIPS Production packages
           - env: prod-fips
             type: deb
             base: ubuntu:22.04
             repo_url: https://builds.altinity.cloud/fips-apt-repo
-            pkg_cmd: |
-              apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 dialog sudo
-              mkdir -p /usr/share/keyrings
-              curl -s "${REPO_URL}/pubkey.gpg" | gpg --dearmor > /usr/share/keyrings/altinity-archive-keyring.gpg
-              echo "deb [signed-by=/usr/share/keyrings/altinity-archive-keyring.gpg] ${REPO_URL} stable main" > /etc/apt/sources.list.d/altinity.list
-              apt-get update
-              DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-server clickhouse-client
           - env: prod-fips
             type: rpm
             base: centos:8
             repo_url: https://builds.altinity.cloud/fips-yum-repo
-            pkg_cmd: |
-              sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-              yum install -y curl gnupg2 sudo
-              curl "${REPO_URL}/altinity.repo" -o /etc/yum.repos.d/altinity.repo
-              yum install -y clickhouse-server clickhouse-client
           # Staging packages
           - env: staging
             type: deb
             base: ubuntu:22.04
             repo_url: https://builds.staging.altinity.cloud/apt-repo
-            pkg_cmd: |
-              apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 dialog sudo
-              mkdir -p /usr/share/keyrings
-              curl -s "${REPO_URL}/pubkey.gpg" | gpg --dearmor > /usr/share/keyrings/altinity-archive-keyring.gpg
-              echo "deb [signed-by=/usr/share/keyrings/altinity-archive-keyring.gpg] ${REPO_URL} stable main" > /etc/apt/sources.list.d/altinity.list
-              apt-get update
-              DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-server clickhouse-client
           - env: staging
             type: rpm
             base: centos:8
             repo_url: https://builds.staging.altinity.cloud/yum-repo
-            pkg_cmd: |
-              sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-              yum install -y curl gnupg2 sudo
-              curl "${REPO_URL}/altinity-staging.repo" -o /etc/yum.repos.d/altinity-staging.repo
-              yum install -y clickhouse-server clickhouse-client
           # FIPS Staging packages
           - env: staging-fips
             type: deb
             base: ubuntu:22.04
             repo_url: https://builds.staging.altinity.cloud/fips-apt-repo
-            pkg_cmd: |
-              apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 dialog sudo
-              mkdir -p /usr/share/keyrings
-              curl -s "${REPO_URL}/pubkey.gpg" | gpg --dearmor > /usr/share/keyrings/altinity-archive-keyring.gpg
-              echo "deb [signed-by=/usr/share/keyrings/altinity-archive-keyring.gpg] ${REPO_URL} stable main" > /etc/apt/sources.list.d/altinity.list
-              apt-get update
-              DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-server clickhouse-client
           - env: staging-fips
             type: rpm
             base: centos:8
             repo_url: https://builds.staging.altinity.cloud/fips-yum-repo
-            pkg_cmd: |
-              sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-              yum install -y curl gnupg2 sudo
-              curl "${REPO_URL}/altinity-staging.repo" -o /etc/yum.repos.d/altinity-staging.repo
-              yum install -y clickhouse-server clickhouse-client
 
     steps:
       - name: Run sanity check
         run: |
-          cat << 'EOF' > sanity.sh
+          cat << EOF > sanity.sh
           #!/bin/bash
           set -e -x
-          
-          ${{ matrix.pkg_cmd }}
+
+          # Package installation commands based on type
+          if [ "${{ matrix.type }}" = "deb" ]; then
+            apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 dialog sudo
+            mkdir -p /usr/share/keyrings
+            curl -s "${REPO_URL}/pubkey.gpg" | gpg --dearmor > /usr/share/keyrings/altinity-archive-keyring.gpg
+            echo "deb [signed-by=/usr/share/keyrings/altinity-archive-keyring.gpg] ${REPO_URL} stable main" > /etc/apt/sources.list.d/altinity.list
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-server clickhouse-client
+          else
+            sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+            sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+            yum install -y curl gnupg2 sudo
+            curl "${REPO_URL}/altinity.repo" -o /etc/yum.repos.d/altinity.repo
+            yum install -y clickhouse-server clickhouse-client
+          fi
           
           # Ensure correct ownership
           chown -R clickhouse /var/lib/clickhouse/
