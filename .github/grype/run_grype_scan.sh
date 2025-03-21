@@ -15,9 +15,9 @@ docker run \
  -o json \
  $IMAGE > result.json
 
-ls
+ls -sh
 
-python3 -u ./.github/grype/parse_vulnerabilities_grype.py -o classic --no-colors --log raw.log --test-to-end || exit_code=$?
+python3 -u ./.github/grype/parse_vulnerabilities_grype.py -o nice --no-colors --log raw.log --test-to-end || exit_code=$?
 
 ./.github/grype/collect_metadata.sh
 

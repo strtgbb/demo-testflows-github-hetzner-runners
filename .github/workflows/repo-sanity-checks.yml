@@ -5,7 +5,7 @@ on:
 
 jobs:
   sanity-checks:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, x86, type-cx42, image-x86-app-docker-ce]
     strategy:
       fail-fast: false  # Continue with other combinations if one fails
       matrix:
