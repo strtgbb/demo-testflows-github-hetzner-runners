@@ -50,18 +50,19 @@ jobs:
     steps:
       - name: Run sanity check
         run: |
-          cat << EOF > sanity.sh
+          cat << 'EOF' > sanity.sh
           #!/bin/bash
           set -e -x
 
           # Package installation commands based on type
           if [ "${{ matrix.type }}" = "deb" ]; then
+            export DEBIAN_FRONTEND=noninteractive
             apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 dialog sudo
             mkdir -p /usr/share/keyrings
             curl -s "${REPO_URL}/pubkey.gpg" | gpg --dearmor > /usr/share/keyrings/altinity-archive-keyring.gpg
             echo "deb [signed-by=/usr/share/keyrings/altinity-archive-keyring.gpg] ${REPO_URL} stable main" > /etc/apt/sources.list.d/altinity.list
             apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y clickhouse-server clickhouse-client
+            apt-get install -y clickhouse-server clickhouse-client
           else
             sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
             sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
