@@ -106,7 +106,7 @@ jobs:
           #!/bin/bash
           set -e -x
           
-          ${pkg_cmd}
+          ${{ matrix.pkg_cmd }}
           
           # Ensure correct ownership
           chown -R clickhouse /var/lib/clickhouse/
@@ -141,6 +141,5 @@ jobs:
           docker run --rm \
             -v $(pwd)/sanity.sh:/sanity.sh \
             -e REPO_URL="${{ matrix.repo_url }}" \
-            -e pkg_cmd="${{ matrix.pkg_cmd }}" \
             ${{ matrix.base }} \
             /sanity.sh 
